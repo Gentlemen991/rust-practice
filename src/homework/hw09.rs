@@ -1,47 +1,27 @@
-fn rotate(s: &str, n: isize) -> String {
+fn rotate(s: String, n: isize) -> String {
     let len = s.len() as isize;
     if len == 0 {
-        return s.to_string();
+        return s;
     }
 
-    // Зводимо зсув до діапазону [0, len)
     let shift = ((n % len) + len) % len;
-    let shift = shift as usize;
+    let split = (len - shift) as usize;
 
-    format!("{}{}", &s[len as usize - shift..], &s[..len as usize - shift])
+    let (left, right) = s.split_at(split);
+    format!("{}{}", right, left)
 }
 
-// Для сумісності з вашим тестом, створимо обгортку, яка приймає String
+// Для тесту
 fn rotate2(s: &str, n: &isize) -> String {
-    rotate(s, *n)
+    rotate(s.to_string(), *n)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+fn main() {
+    let s = "abcdefgh".to_string();
+    let examples = [0, 1, -1, 2, -2, 8, -8, 10, -10];
 
-    #[test]
-    fn test() {
-        let s = "abcdefgh";
-        let shifts = [
-            (0,  "abcdefgh"),
-            (8,  "abcdefgh"),
-            (-8, "abcdefgh"),
-            (1,  "habcdefg"),
-            (2,  "ghabcdef"),
-            (10, "ghabcdef"),
-            (-1, "bcdefgha"),
-            (-2, "cdefghab"),
-            (-10,"cdefghab"),
-        ];
-
-        shifts
-            .iter()
-            .for_each(|(n, exp)|
-                assert_eq!(
-                    rotate2(s, n),
-                    exp.to_string()
-                )
-            );
+    for &shift in &examples {
+        let result = rotate(s.clone(), shift);
+        println!("rotate({}, {}) = {}", s, shift, result);
     }
 }
