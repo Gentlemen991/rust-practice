@@ -1,56 +1,37 @@
 use std::collections::HashSet;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct Point {
-    x: i32,
-    y: i32,
+fn generate_gray_codes(n: u32) -> Vec<u32> {
+    (0..1 << n).map(|i| i ^ (i >> 1)).collect()
 }
 
-#[derive(Debug)]
-struct Rectangle {
-    a: Point, // верхній лівий
-    b: Point, // нижній правий
+fn gray_code_to_point(code: u32, n: u32) -> (u32, u32) {
+    let half = n / 2;
+    let x = (code >> half) & ((1 << half) - 1);
+    let y = code & ((1 << half) - 1);
+    (x, y)
 }
 
-fn area_occupied(xs: &Vec<Rectangle>) -> i32 {
-    let mut covered: HashSet<Point> = HashSet::new();
-
-    for rect in xs {
-        let x1 = rect.a.x.min(rect.b.x);
-        let x2 = rect.a.x.max(rect.b.x);
-        let y1 = rect.a.y.min(rect.b.y);
-        let y2 = rect.a.y.max(rect.b.y);
-
-        for x in x1..x2 {
-            for y in y1..y2 {
-                covered.insert(Point { x, y });
-            }
-        }
+fn calculate_area(points: &HashSet<(u32, u32)>) -> u32 {
+    if points.is_empty() {
+        return 0;
     }
-
-    covered.len() as i32
+    let (min_x, max_x) = points.iter().fold((u32::MAX, u32::MIN), |(min_x, max_x), &(x, _)| {
+        (min_x.min(x), max_x.max(x))
+    });
+    let (min_y, max_y) = points.iter().fold((u32::MAX, u32::MIN), |(min_y, max_y), &(_, y)| {
+        (min_y.min(y), max_y.max(y))
+    });
+    (max_x - min_x + 1) * (max_y - min_y + 1)
 }
 
-fn test_data() -> Vec<Rectangle> {
-    vec![
-        Rectangle {
-            a: Point { x: 2, y: 9 },
-            b: Point { x: 5, y: 3 },
-        },
-        Rectangle {
-            a: Point { x: 1, y: 8 },
-            b: Point { x: 11, y: 6 },
-        },
-        Rectangle {
-            a: Point { x: 9, y: 10 },
-            b: Point { x: 13, y: 2 },
-        },
-    ]
-}
-
-#[test]
-fn area_occupied_test() {
-    let data = test_data();
-    let result = area_occupied(&data);
-    assert_eq!(result, 60);
+fn main() {
+    let n = 4;
+    let gray_codes = generate_gray_codes(n);
+    let mut points = HashSet::new();
+    for code in gray_codes {
+        let point = gray_code_to_point(code, n);
+        points.insert(point);
+    }
+    let area = calculate_area(&points);
+    println!("Площа, зайнята кодами Грея: {}", area);
 }
